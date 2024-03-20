@@ -20,7 +20,7 @@ library(MASS)
 ```{r}
 ##Import data##
 
-pa_data_done <- read_csv("data/pa_data_done.csv")
+pa_data_done <- read_csv("output/pa_data_done.csv")
 
 ####CLASS CHECK####
 pa_data_done$Shape_Length <- as.numeric(pa_data_done$Shape_Length)
