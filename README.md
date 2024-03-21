@@ -19,6 +19,7 @@ We used ArcGIS to delineate all coral colonies on the Orthomosaic. By outlining 
 
 
 GUIDE TO THE CONTENTS OF THESE FILES
+
 There are four folders:
 - R: the R codes
 	- Binomial_analysis.Rmd: for doing all of the statistical analysis
