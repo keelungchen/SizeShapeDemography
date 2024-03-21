@@ -131,7 +131,6 @@ for (Fates in Fate_loop) {
   pa_data_done$Discrete_change <- ifelse(pa_data_done$Fate == Fates, 1, ifelse(pa_data_done$Fate != Fates, 0, NA))
   pa_data_done_12 <- filter(pa_data_done, Survey_times == 1 | Survey_times == 2)
   pa_data_done_12 <- filter(pa_data_done_12, Fate != "D") #Exclude mortality
-  #pa_data_done_12 <- filter(pa_data_done_12, size_class != "J") #Exclude Juvenile
   
   # Clean data
   df <- data.frame(pa_data_done_12$Discrete_change, log10(pa_data_done_12$Shape_Area), log10(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit) 
@@ -178,7 +177,6 @@ round(R_square_bind,2)
 round(Log_likelihood_bind,0)
 round(AIC_bind,0)
 round(DF_bind,0)
-#write.csv(R_square_bind, file = "C:/Users/keelu/R/FiFu_analysis/data/R_square_bind.csv")
 ```
 
 
@@ -271,7 +269,7 @@ combined_list <- append(combined_list, plot_list)
 
 #plot together
 fig2_1 <- plot_grid(plotlist = combined_list, align="h",nrow = 5)
-ggsave("C:/Users/keelu/R/FiFu_analysis/Figs/Discrete_logClass_lm_all.png", plot = fig2_1, width = 6.5, height = 10, dpi = 300)
+ggsave("C:figs/Fates_Ocurrence_Traits.png", plot = fig2_1, width = 6.5, height = 10, dpi = 300)
 
 
 ```
@@ -332,163 +330,19 @@ pa_data_done_12 <- filter(pa_data_done, Survey_times == 1 | Survey_times == 2)
 df <- data.frame(pa_data_done_12$Discrete_change, log10(pa_data_done_12$Shape_Area), log10(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit, pa_data_done_12$Unique_ID) 
 
 for (i in 1:3) {
-  model <- glmer(df[[1]] ~ df[[i+1]] + (1 | df[[5]]), family = binomial)
-  #R_square[,i] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-  #Log_likelihood[,i] <- logLik(model) # Calculate log likelihood
-  #AIC_row[,i] <- AIC(model) # Calculate AIC
-  #DF[,i] <- model$df.residual
+  model <- glmer(df[[1]] ~ df[[i+1]] + (1 | df[[5]]), family = binomial) #df[5] = unique_ID
   print(summary(model)) #show model info
 }
 
 ## Calculate R square, AIC, LogLik for size*circ and size+circ
 # size*circ
 model <- glmer(df[[1]] ~ df[[2]]*df[[4]] + (1 | df[[5]]), family = binomial)
-# R_square[,i+1] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-# Log_likelihood[,i+1] <- logLik(model) # Calculate log likelihood
-# AIC_row[,i+1] <- AIC(model) # Calculate AIC
-# DF[,i+1] <- model$df.residual
 print(summary(model))
 
 # size+circ
 model <- glmer(df[[1]] ~ df[[2]]+df[[4]] + (1 | df[[5]]), family = binomial)
-# R_square[,i+2] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-# Log_likelihood[,i+2] <- logLik(model) # Calculate log likelihood
-# AIC_row[,i+2] <- AIC(model) # Calculate AIC
-# DF[,i+2] <- model$df.residual
 print(summary(model))
 
-# Bind the data.frame
-# R_square_bind[1,]  <- R_square
-# Log_likelihood_bind[1,]  <- Log_likelihood
-# AIC_bind[1,]  <- AIC_row
-# DF_bind[1,] <- DF
-
-
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-# plot t and t+1
-```{r}
-data_time_1 <- subset(pa_data_done, Survey_times == 1, select = c(ID, Plot_ID, Shape_Area, Survey_times, pa_ratio, circ))
-data_time_2 <- subset(pa_data_done, Survey_times == 2, select = c(ID, Plot_ID, Shape_Area, Survey_times, pa_ratio, circ))
-data_time_3 <- subset(pa_data_done, Survey_times == 3, select = c(ID, Plot_ID, Shape_Area, Survey_times, pa_ratio, circ))
-
-data_merged_1 <- merge(data_time_1, data_time_2, by=c("ID","Plot_ID"), all=TRUE)
-data_merged_1 <- na.omit(data_merged_1)
-
-data_merged_2 <- merge(data_time_2, data_time_3, by=c("ID","Plot_ID"), all=TRUE)
-data_merged_2 <- na.omit(data_merged_2)
-
-data_merged <- rbind(data_merged_1,data_merged_2)
-
-colnames(data_merged)[colnames(data_merged) == "Shape_Area.x"] <- "area_t"
-colnames(data_merged)[colnames(data_merged) == "Shape_Area.y"] <- "area_t1"
-colnames(data_merged)[colnames(data_merged) == "pa_ratio.x"] <- "pa_ratio_t"
-colnames(data_merged)[colnames(data_merged) == "circ.x"] <- "circ_t"
-
-
-p <- ggplot(data_merged, aes(x = area_t, y = area_t1)) +
-  geom_point(alpha = 0.5) + # 保留原有的透明散點
-  scale_fill_gradient(low = "yellow", high = "red") +
-  stat_density_2d(aes(fill = ..level..), geom = "polygon", alpha = 0.5) + # 加入密度著色
-  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "black") +
-  theme_minimal() +
-  labs(x = "area at t (m²)", y = "area at t+1 (m²)")
-
-p 
-```
-
-# try P/A
-```{r}
-data_time_1 <- subset(pa_data_done, Survey_times == 1, select = c(ID, Plot_ID, pa_ratio, Survey_times))
-data_time_2 <- subset(pa_data_done, Survey_times == 2, select = c(ID, Plot_ID, pa_ratio, Survey_times))
-data_time_3 <- subset(pa_data_done, Survey_times == 3, select = c(ID, Plot_ID, pa_ratio, Survey_times))
-
-data_merged_1 <- merge(data_time_1, data_time_2, by=c("ID","Plot_ID"), all=TRUE)
-data_merged_1 <- na.omit(data_merged_1)
-
-data_merged_2 <- merge(data_time_2, data_time_3, by=c("ID","Plot_ID"), all=TRUE)
-data_merged_2 <- na.omit(data_merged_2)
-
-data_merged <- rbind(data_merged_1,data_merged_2)
-
-colnames(data_merged)[colnames(data_merged) == "pa_ratio.x"] <- "PA_t"
-colnames(data_merged)[colnames(data_merged) == "pa_ratio.y"] <- "PA_t1"
-
-p <- ggplot(data_merged, aes(x = PA_t, y = PA_t1)) +
-  geom_point(alpha = 0.5) + # 保留原有的透明散點
-  scale_fill_gradient(low = "yellow", high = "red") +
-  stat_density_2d(aes(fill = ..level..), geom = "polygon", alpha = 0.5) + # 加入密度著色
-  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "black") +
-  theme_minimal() +
-  labs(x = "P/A ratio at t (m²)", y = "P/A ratio at t+1 (m²)")
-
-p 
-
-```
-
-# try circ t and t+1
-```{r}
-data_time_1 <- subset(pa_data_done, Survey_times == 1, select = c(ID, Plot_ID, circ, Survey_times))
-data_time_2 <- subset(pa_data_done, Survey_times == 2, select = c(ID, Plot_ID, circ, Survey_times))
-data_time_3 <- subset(pa_data_done, Survey_times == 3, select = c(ID, Plot_ID, circ, Survey_times))
-
-data_merged_1 <- merge(data_time_1, data_time_2, by=c("ID","Plot_ID"), all=TRUE)
-data_merged_1 <- na.omit(data_merged_1)
-
-data_merged_2 <- merge(data_time_2, data_time_3, by=c("ID","Plot_ID"), all=TRUE)
-data_merged_2 <- na.omit(data_merged_2)
-
-data_merged <- rbind(data_merged_1,data_merged_2)
-
-colnames(data_merged)[colnames(data_merged) == "circ.x"] <- "circ_t"
-colnames(data_merged)[colnames(data_merged) == "circ.y"] <- "circ_t1"
-
-p <- ggplot(data_merged, aes(x = circ_t, y = circ_t1)) +
-  geom_point(alpha = 0.5) + # 保留原有的透明散點
-  scale_fill_gradient(low = "yellow", high = "red") +
-  stat_density_2d(aes(fill = ..level..), geom = "polygon", alpha = 0.5) + # 加入密度著色
-  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "black") +
-  theme_minimal() +
-  labs(x = "Circ at t (m²)", y = "Circ at t+1 (m²)")
-
-p 
-```
-
-# 型態和變化程度的相關性
-```{r}
-data <-  data_merged
-
-# 建立模型
-model1 <- lm(log(area_t1) ~ log(area_t), data = data)
-model2 <- lm(log(area_t1) ~ log(pa_ratio_t), data = data)
-model3 <- lm(log(area_t1) ~ log(circ_t), data = data)
-model4 <- lm(log(area_t1) ~ log(area_t) + log(pa_ratio_t), data = data)
-model5 <- lm(log(area_t1) ~ log(area_t) + log(circ_t), data = data)
-model6 <- lm(log(area_t1) ~ log(area_t) + log(pa_ratio_t) + log(circ_t), data = data)
-model7 <- lm(log(area_t1) ~ log(area_t) * log(pa_ratio_t), data = data)
-model8 <- lm(log(area_t1) ~ log(area_t) * log(circ_t), data = data)
-
-# 計算 AIC 和調整 R 平方
-results <- data.frame(
-  model = c("model1", "model2", "model3", "model4", "model5", "model6", "model7", "model8"),
-  AIC = c(AIC(model1), AIC(model2), AIC(model3), AIC(model4), AIC(model5), AIC(model6), AIC(model7), AIC(model8)),
-  Adjusted_R_Squared = c(summary(model1)$adj.r.squared, summary(model2)$adj.r.squared, summary(model3)$adj.r.squared, summary(model4)$adj.r.squared, summary(model5)$adj.r.squared, summary(model6)$adj.r.squared, summary(model7)$adj.r.squared, summary(model8)$adj.r.squared)
-)
-
-# 查看模型汇总
-print(results)
 ```
 
 
@@ -662,7 +516,7 @@ for (i in 1:3) {
   }
 fig_1_2 <- plot_grid(plot_list[[1]],plot_list[[2]],plot_list[[3]],nrow = 1)
 
-ggsave("C:/Users/keelu/R/FiFu_analysis/Figs/Change_rate_Morpho.png", plot = fig_1_2, width = 6.5, height = 2.5, dpi = 300)
+ggsave("figs/Change_rate_Traits.png", plot = fig_1_2, width = 6.5, height = 2.5, dpi = 300)
 
 mod0 <- lm(log(pa_data_done_12$rate_ad)~log(pa_data_done_12$Shape_Area))
 summary(mod0)
@@ -674,295 +528,4 @@ summary(mod1)
 drop1(mod1, test="F")
 #mod2 <- lm(log(pa_data_done_12$rate_ad)~log(pa_data_done_12$pa_ratio))
 
-
 ```
-
-
-# consider growth and shrinnkage seperately - Only Growth
-```{r}
-
-# Set column name
-column_names <- c("Size", "P/A", "Circ", "Size*Circ", "Size+Circ")
-# Set row name
-row_names <- c("Delta area", "Ratio")
-
-# Set R square dataframes
-R_square_bind <- data.frame(matrix(NA, nrow = length(row_names), ncol = length(column_names)))
-colnames(R_square_bind) <- column_names
-rownames(R_square_bind) <- row_names
-
-R_square <- data.frame(matrix(NA, nrow = 1, ncol = length(column_names)))
-colnames(R_square) <- column_names
-
-# Set Log likelihood dataframes
-Log_likelihood_bind <- data.frame(matrix(NA, nrow = length(row_names), ncol = length(column_names)))
-colnames(Log_likelihood_bind) <- column_names
-rownames(Log_likelihood_bind) <- row_names
-
-Log_likelihood <- data.frame(matrix(NA, nrow = 1, ncol = length(column_names)))
-colnames(Log_likelihood) <- column_names
-
-# Set AIC dataframes
-AIC_bind <- data.frame(matrix(NA, nrow = length(row_names), ncol = length(column_names)))
-colnames(AIC_bind) <- column_names
-rownames(AIC_bind) <- row_names
-
-AIC_row <- data.frame(matrix(NA, nrow = 1, ncol = length(column_names)))
-colnames(AIC_row) <- column_names
-
-
-pa_data_done_12 <- filter(pa_data_done, Survey_times == 1 | Survey_times == 2)
-pa_data_done_12 <- filter(pa_data_done_12, Fate != "D") #Exclude mortality
-pa_data_done_12 <- filter(pa_data_done_12, sa_change > 0) #Exclude shrinkage
-
-############ Clean data
-df <- data.frame(pa_data_done_12$sa_change, log(pa_data_done_12$Shape_Area), log(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit) 
-  
-  # Calculate R square, AIC, LogLik for 3 morphological classification
-for (i in 1:3) {
-  model <- glm(df[[1]] ~ df[[i+1]], family = gaussian)
-  R_square[,i] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-  Log_likelihood[,i] <- logLik(model) # Calculate log likelihood
-  AIC_row[,i] <- AIC(model) # Calculate AIC
-}
-
-## Calculate R square, AIC, LogLik for size*circ and size+circ
-# size*circ
-model <- glm(df[[1]] ~ df[[2]]*df[[4]], family = gaussian)
-R_square[,i+1] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-Log_likelihood[,i+1] <- logLik(model) # Calculate log likelihood
-AIC_row[,i+1] <- AIC(model) # Calculate AIC
-
-# size+circ
-model <- glm(df[[1]] ~ df[[2]]+df[[4]], family = gaussian)
-R_square[,i+2] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-Log_likelihood[,i+2] <- logLik(model) # Calculate log likelihood
-AIC_row[,i+2] <- AIC(model) # Calculate AIC
-
-# Bind the data.frame
-R_square_bind[1,]  <- R_square
-Log_likelihood_bind[1,]  <- Log_likelihood
-AIC_bind[1,]  <- AIC_row
-
-############### Clean data
-df <- data.frame(pa_data_done_12$rate_ad, log(pa_data_done_12$Shape_Area), log(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit) 
-  
-  # Calculate R square, AIC, LogLik for 3 morphological classification
-for (i in 1:3) {
-  model <- glm(df[[1]] ~ df[[i+1]], family = gaussian)
-  R_square[,i] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-  Log_likelihood[,i] <- logLik(model) # Calculate log likelihood
-  AIC_row[,i] <- AIC(model) # Calculate AIC
-}
-
-## Calculate R square, AIC, LogLik for size*circ and size+circ
-# size*circ
-model <- glm(df[[1]] ~ df[[2]]*df[[4]], family = gaussian)
-R_square[,i+1] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-Log_likelihood[,i+1] <- logLik(model) # Calculate log likelihood
-AIC_row[,i+1] <- AIC(model) # Calculate AIC
-
-# size+circ
-model <- glm(df[[1]] ~ df[[2]]+df[[4]], family = gaussian)
-R_square[,i+2] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-Log_likelihood[,i+2] <- logLik(model) # Calculate log likelihood
-AIC_row[,i+2] <- AIC(model) # Calculate AIC
-
-# Bind the data.frame
-R_square_bind[2,]  <- R_square
-Log_likelihood_bind[2,]  <- Log_likelihood
-AIC_bind[2,]  <- AIC_row
-
-
-round(R_square_bind,2)
-round(Log_likelihood_bind,0)
-round(AIC_bind,0)
-
-#########make the plot
-#delta area
-df <- data.frame(pa_data_done_12$sa_change, log(pa_data_done_12$Shape_Area), log(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit)
-colnames(df) <- c("Delta area", "log10 Size","log10 PA_ratio","logit Circ")
-
-plot_list <- list()
-for (i in 1:3) {
-    data <- data.frame(
-      x = df[,i+1],
-      y = df[,1]
-    )
-    p <- ggplot(data = data, aes(x, y))+
-    geom_point(shape=21)+
-    geom_smooth(method="glm", method.args = list(family = "gaussian"))+
-    geom_point()+ 
-    xlab(colnames(df[i+1]))+
-    ylab(colnames(df[1]))
-    plot_list[[i]] <- p
-  }
-fig_1 <- plot_grid(plot_list[[1]],plot_list[[2]],plot_list[[3]],nrow = 1)
-
-# Delta area ratio
-df <- data.frame(pa_data_done_12$rate_ad, log(pa_data_done_12$Shape_Area), log(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit)
-colnames(df) <- c("Ratio", "log10 Size","log10 PA_ratio","logit Circ")
-
-
-plot_list <- list()
-for (i in 1:3) {
-    data <- data.frame(
-      x = df[,i+1],
-      y = df[,1]
-    )
-    p <- ggplot(data = data, aes(x, y))+
-    geom_point(shape=21)+
-    geom_smooth(method="glm", method.args = list(family = "gaussian"))+
-    geom_point()+ 
-    xlab(colnames(df[i+1]))+
-    ylab(colnames(df[1]))
-    plot_list[[i]] <- p
-  }
-fig_1_2 <- plot_grid(plot_list[[1]],plot_list[[2]],plot_list[[3]],nrow = 1)
-```
-
-
-# consider growth and shrinnkage seperately - Only Shrinkage
-```{r}
-
-# Set column name
-column_names <- c("Size", "P/A", "Circ", "Size*Circ", "Size+Circ")
-# Set row name
-row_names <- c("Delta area", "Ratio")
-
-# Set R square dataframes
-R_square_bind <- data.frame(matrix(NA, nrow = length(row_names), ncol = length(column_names)))
-colnames(R_square_bind) <- column_names
-rownames(R_square_bind) <- row_names
-
-R_square <- data.frame(matrix(NA, nrow = 1, ncol = length(column_names)))
-colnames(R_square) <- column_names
-
-# Set Log likelihood dataframes
-Log_likelihood_bind <- data.frame(matrix(NA, nrow = length(row_names), ncol = length(column_names)))
-colnames(Log_likelihood_bind) <- column_names
-rownames(Log_likelihood_bind) <- row_names
-
-Log_likelihood <- data.frame(matrix(NA, nrow = 1, ncol = length(column_names)))
-colnames(Log_likelihood) <- column_names
-
-# Set AIC dataframes
-AIC_bind <- data.frame(matrix(NA, nrow = length(row_names), ncol = length(column_names)))
-colnames(AIC_bind) <- column_names
-rownames(AIC_bind) <- row_names
-
-AIC_row <- data.frame(matrix(NA, nrow = 1, ncol = length(column_names)))
-colnames(AIC_row) <- column_names
-
-
-pa_data_done_12 <- filter(pa_data_done, Survey_times == 1 | Survey_times == 2)
-pa_data_done_12 <- filter(pa_data_done_12, Fate != "D") #Exclude mortality
-pa_data_done_12 <- filter(pa_data_done_12, sa_change < 0) #Exclude growth
-
-############ Clean data
-df <- data.frame(pa_data_done_12$sa_change, log(pa_data_done_12$Shape_Area), log(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit) 
-  
-  # Calculate R square, AIC, LogLik for 3 morphological classification
-for (i in 1:3) {
-  model <- glm(df[[1]] ~ df[[i+1]], family = gaussian)
-  R_square[,i] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-  Log_likelihood[,i] <- logLik(model) # Calculate log likelihood
-  AIC_row[,i] <- AIC(model) # Calculate AIC
-}
-
-## Calculate R square, AIC, LogLik for size*circ and size+circ
-# size*circ
-model <- glm(df[[1]] ~ df[[2]]*df[[4]], family = gaussian)
-R_square[,i+1] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-Log_likelihood[,i+1] <- logLik(model) # Calculate log likelihood
-AIC_row[,i+1] <- AIC(model) # Calculate AIC
-
-# size+circ
-model <- glm(df[[1]] ~ df[[2]]+df[[4]], family = gaussian)
-R_square[,i+2] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-Log_likelihood[,i+2] <- logLik(model) # Calculate log likelihood
-AIC_row[,i+2] <- AIC(model) # Calculate AIC
-
-# Bind the data.frame
-R_square_bind[1,]  <- R_square
-Log_likelihood_bind[1,]  <- Log_likelihood
-AIC_bind[1,]  <- AIC_row
-
-############### Clean data
-df <- data.frame(pa_data_done_12$rate_ad, log(pa_data_done_12$Shape_Area), log(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit) 
-  
-  # Calculate R square, AIC, LogLik for 3 morphological classification
-for (i in 1:3) {
-  model <- glm(df[[1]] ~ df[[i+1]], family = gaussian)
-  R_square[,i] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-  Log_likelihood[,i] <- logLik(model) # Calculate log likelihood
-  AIC_row[,i] <- AIC(model) # Calculate AIC
-}
-
-## Calculate R square, AIC, LogLik for size*circ and size+circ
-# size*circ
-model <- glm(df[[1]] ~ df[[2]]*df[[4]], family = gaussian)
-R_square[,i+1] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-Log_likelihood[,i+1] <- logLik(model) # Calculate log likelihood
-AIC_row[,i+1] <- AIC(model) # Calculate AIC
-
-# size+circ
-model <- glm(df[[1]] ~ df[[2]]+df[[4]], family = gaussian)
-R_square[,i+2] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-Log_likelihood[,i+2] <- logLik(model) # Calculate log likelihood
-AIC_row[,i+2] <- AIC(model) # Calculate AIC
-
-# Bind the data.frame
-R_square_bind[2,]  <- R_square
-Log_likelihood_bind[2,]  <- Log_likelihood
-AIC_bind[2,]  <- AIC_row
-
-
-round(R_square_bind,2)
-round(Log_likelihood_bind,0)
-round(AIC_bind,0)
-
-#########make the plot
-#delta area
-df <- data.frame(pa_data_done_12$sa_change, log(pa_data_done_12$Shape_Area), log(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit)
-colnames(df) <- c("Delta area", "log10 Size","log10 PA_ratio","logit Circ")
-
-plot_list <- list()
-for (i in 1:3) {
-    data <- data.frame(
-      x = df[,i+1],
-      y = df[,1]
-    )
-    p <- ggplot(data = data, aes(x, y))+
-    geom_point(shape=21)+
-    geom_smooth(method="glm", method.args = list(family = "gaussian"))+
-    geom_point()+ 
-    xlab(colnames(df[i+1]))+
-    ylab(colnames(df[1]))
-    plot_list[[i]] <- p
-  }
-fig_1 <- plot_grid(plot_list[[1]],plot_list[[2]],plot_list[[3]],nrow = 1)
-
-# Delta area ratio
-df <- data.frame(pa_data_done_12$rate_ad, log(pa_data_done_12$Shape_Area), log(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit)
-colnames(df) <- c("Ratio", "log10 Size","log10 PA_ratio","logit Circ")
-
-
-plot_list <- list()
-for (i in 1:3) {
-    data <- data.frame(
-      x = df[,i+1],
-      y = df[,1]
-    )
-    p <- ggplot(data = data, aes(x, y))+
-    geom_point(shape=21)+
-    geom_smooth(method="glm", method.args = list(family = "gaussian"))+
-    geom_point()+ 
-    xlab(colnames(df[i+1]))+
-    ylab(colnames(df[1]))
-    plot_list[[i]] <- p
-  }
-fig_1_2 <- plot_grid(plot_list[[1]],plot_list[[2]],plot_list[[3]],nrow = 1)
-```
-
-
