@@ -31,7 +31,7 @@ There are four folders:
 The explanation of column names:
 - pa_data_done.csv
 	- $OBJECTID: the ID that was generated automatically by ArcGIS for polygons in each feature class layer
-	- $ID: the ID that was assigned manually for tracking the changes in each plot (different plot might have the same ID)
+	- $ID: the ID that was assigned manually for tracking the changes of coral colony in each plot (different plot might have the same ID)
 	- $Shape_Length: the perimeter of coral colony
 	- $Shape_Area: the area of coral colony
 	- $Fate: the modular process or fate of coral colony at next survey time
