@@ -26,7 +26,7 @@ There are four folders:
 	- Data_Finalization.Rmd: for finalizing the raw data from ArcGIS
 - data: the raw data exported from ArcGIS
 - figs: the figure generated for anlysis and results
-- output: the data that generated during R analysis
+- output: the data that was generated and used for statistics during R analysis
 
 The explanation of column names:
 - pa_data_done.csv
