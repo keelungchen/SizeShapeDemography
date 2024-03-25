@@ -282,45 +282,7 @@ library(lme4)
 pa_data_done$Unique_ID <- paste(pa_data_done$Plot_ID, pa_data_done$ID, sep="_")
 pa_data_done$Unique_ID <- as.factor(pa_data_done$Unique_ID)
 
-# Set column name
-column_names <- c("Size", "P/A", "Circ", "Size*Circ", "Size+Circ")
-# Set row name
-row_names <- c("Survival", "Growth", "Shrinkage", "Fission", "Fusion")
-
-# Set R square dataframes
-R_square_bind <- data.frame(matrix(NA, nrow = 5, ncol = length(column_names)))
-colnames(R_square_bind) <- column_names
-rownames(R_square_bind) <- row_names
-
-R_square <- data.frame(matrix(NA, nrow = 1, ncol = length(column_names)))
-colnames(R_square) <- column_names
-
-# Set Log likelihood dataframes
-Log_likelihood_bind <- data.frame(matrix(NA, nrow = 5, ncol = length(column_names)))
-colnames(Log_likelihood_bind) <- column_names
-rownames(Log_likelihood_bind) <- row_names
-
-Log_likelihood <- data.frame(matrix(NA, nrow = 1, ncol = length(column_names)))
-colnames(Log_likelihood) <- column_names
-
-# Set AIC dataframes
-AIC_bind <- data.frame(matrix(NA, nrow = 5, ncol = length(column_names)))
-colnames(AIC_bind) <- column_names
-rownames(AIC_bind) <- row_names
-
-AIC_row <- data.frame(matrix(NA, nrow = 1, ncol = length(column_names)))
-colnames(AIC_row) <- column_names
-
-# Set DF_Residual dataframes
-DF_bind <- data.frame(matrix(NA, nrow = 5, ncol = length(column_names)))
-colnames(DF_bind) <- column_names
-rownames(DF_bind) <- row_names
-
-DF <- data.frame(matrix(NA, nrow = 1, ncol = length(column_names)))
-colnames(DF) <- column_names
-
-
-# Calculate the survival (mortality) separately 
+### Calculate the survival (mortality) separately 
 Fates = "D"
   
 pa_data_done$Discrete_change <- ifelse(pa_data_done$Fate == Fates, 0, ifelse(pa_data_done$Fate != Fates, 1, NA))
@@ -334,7 +296,6 @@ for (i in 1:3) {
   print(summary(model)) #show model info
 }
 
-## Calculate R square, AIC, LogLik for size*circ and size+circ
 # size*circ
 model <- glmer(df[[1]] ~ df[[2]]*df[[4]] + (1 | df[[5]]), family = binomial)
 print(summary(model))
@@ -343,16 +304,46 @@ print(summary(model))
 model <- glmer(df[[1]] ~ df[[2]]+df[[4]] + (1 | df[[5]]), family = binomial)
 print(summary(model))
 
+### calculate the fates that do not include survival 
+
+
+
+Fate_loop <- c("G","S","Fi","Fu")
+
+for (Fates in Fate_loop) {
+  
+  pa_data_done$Discrete_change <- ifelse(pa_data_done$Fate == Fates, 1, ifelse(pa_data_done$Fate != Fates, 0, NA))
+  pa_data_done_12 <- filter(pa_data_done, Survey_times == 1 | Survey_times == 2)
+  pa_data_done_12 <- filter(pa_data_done_12, Fate != "D") #Exclude mortality
+  # Clean data
+  df <- data.frame(pa_data_done_12$Discrete_change, log10(pa_data_done_12$Shape_Area), log10(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit, pa_data_done_12$Unique_ID) 
+
+  # Calculate 3 morphological classification
+for (i in 1:3) {
+  model <- glmer(df[[1]] ~ df[[i+1]] + (1 | df[[5]]), family = binomial) #df[5] = unique_ID
+  print(summary(model))
+}
+
+## Calculate R square, AIC, LogLik for size*circ and size+circ
+# size*circ
+model <- glmer(df[[1]] ~ df[[2]]*df[[4]] + (1 | df[[5]]), family = binomial)
+print(summary(model))
+
+# size+circ
+model <- glmer(df[[1]] ~ df[[2]]+df[[4]] + (1 | df[[5]]), family = binomial)
+print(summary(model))
+}
+
 ```
 
 
-# Analysis model about morphology VS area change (delta area)
+# Analysis model about morphology VS area change rate
 
 ```{r}
 # Set column name
 column_names <- c("Size", "P/A", "Circ", "Size*Circ", "Size+Circ")
 # Set row name
-row_names <- c("Delta area", "Ratio")
+row_names <- c("Ratio")
 
 # Set R square dataframes
 R_square_bind <- data.frame(matrix(NA, nrow = length(row_names), ncol = length(column_names)))
@@ -390,40 +381,6 @@ colnames(DF) <- column_names
 pa_data_done_12 <- filter(pa_data_done, Survey_times == 1 | Survey_times == 2)
 pa_data_done_12 <- filter(pa_data_done_12, Fate != "D") #Exclude mortality
 
-############ Clean data
-df <- data.frame(pa_data_done_12$sa_change, log10(pa_data_done_12$Shape_Area), log10(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit) 
-  
-  # Calculate R square, AIC, LogLik for 3 morphological classification
-for (i in 1:3) {
-  model <- glm(df[[1]] ~ df[[i+1]], family = gaussian)
-  R_square[,i] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-  Log_likelihood[,i] <- logLik(model) # Calculate log likelihood
-  AIC_row[,i] <- AIC(model) # Calculate AIC
-  DF[,i] <- model$df.residual
-}
-
-## Calculate R square, AIC, LogLik for size*circ and size+circ
-# size*circ
-model <- glm(df[[1]] ~ df[[2]]*df[[4]], family = gaussian)
-R_square[,i+1] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-Log_likelihood[,i+1] <- logLik(model) # Calculate log likelihood
-AIC_row[,i+1] <- AIC(model) # Calculate AIC
-DF[,i+1] <- model$df.residual
-
-# size+circ
-model <- glm(df[[1]] ~ df[[2]]+df[[4]], family = gaussian)
-R_square[,i+2] <- with(summary(model), 1 - deviance/null.deviance) # Calculate McFadden's R-squared
-Log_likelihood[,i+2] <- logLik(model) # Calculate log likelihood
-AIC_row[,i+2] <- AIC(model) # Calculate AIC
-DF[,i+2] <- model$df.residual
-
-
-# Bind the data.frame
-R_square_bind[1,]  <- R_square
-Log_likelihood_bind[1,]  <- Log_likelihood
-AIC_bind[1,]  <- AIC_row
-DF_bind[1,] <- DF
-
 ############### Clean data
 df <- data.frame(log(pa_data_done_12$rate_ad), log10(pa_data_done_12$Shape_Area), log10(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit) 
   
@@ -455,10 +412,10 @@ DF[,i+2] <- model$df.residual
 print(summary(model))
 
 # Bind the data.frame
-R_square_bind[2,]  <- R_square
-Log_likelihood_bind[2,]  <- Log_likelihood
-AIC_bind[2,]  <- AIC_row
-DF_bind[2,] <- DF
+R_square_bind[1,]  <- R_square
+Log_likelihood_bind[1,]  <- Log_likelihood
+AIC_bind[1,]  <- AIC_row
+DF_bind[1,] <- DF
 
 round(R_square_bind,2)
 round(Log_likelihood_bind,0)
@@ -466,26 +423,6 @@ round(AIC_bind,0)
 round(DF_bind,0)
 
 #########make the plot
-#delta area
-df <- data.frame(pa_data_done_12$sa_change, log(pa_data_done_12$Shape_Area), log(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit)
-colnames(df) <- c("Delta area", "log10 Size","log10 PA_ratio","logit Circ")
-
-plot_list <- list()
-for (i in 1:3) {
-    data <- data.frame(
-      x = df[,i+1],
-      y = df[,1]
-    )
-    p <- ggplot(data = data, aes(x, y))+
-    geom_point(shape=21)+
-    geom_smooth(method="glm", method.args = list(family = "gaussian"))+
-    geom_point()+ 
-    xlab(colnames(df[i+1]))+
-    ylab(colnames(df[1]))
-    plot_list[[i]] <- p
-  }
-fig_1 <- plot_grid(plot_list[[1]],plot_list[[2]],plot_list[[3]],nrow = 1)
-
 # Delta area ratio0
 df <- data.frame(log10(pa_data_done_12$rate_ad), log10(pa_data_done_12$Shape_Area), log(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit)
 colnames(df) <- c("log Change_rate", "log10 Size","log10 P/A_ratio","logit Circ")
@@ -517,15 +454,5 @@ for (i in 1:3) {
 fig_1_2 <- plot_grid(plot_list[[1]],plot_list[[2]],plot_list[[3]],nrow = 1)
 
 ggsave("figs/Change_rate_Traits.png", plot = fig_1_2, width = 6.5, height = 2.5, dpi = 300)
-
-mod0 <- lm(log(pa_data_done_12$rate_ad)~log(pa_data_done_12$Shape_Area))
-summary(mod0)
-mod00 <- glm(log(pa_data_done_12$rate_ad)~pa_data_done_12$circ_logit)
-summary(mod00)
-
-mod1 <- lm(log(pa_data_done_12$rate_ad)~log(pa_data_done_12$Shape_Area)+pa_data_done_12$circ_logit)
-summary(mod1)
-drop1(mod1, test="F")
-#mod2 <- lm(log(pa_data_done_12$rate_ad)~log(pa_data_done_12$pa_ratio))
 
 ```
