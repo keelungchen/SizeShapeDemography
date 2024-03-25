@@ -49,9 +49,6 @@ The explanation of column names:
 	- $pa_ratio: the perimeter/area ratio of colony
 	- $Circle_Length: the ideal circumference of colony
 	- $circ: the circularity of colony
-	- $pure_size: the colony classcification by size
-	- $size_class_pa: the colony classcification by P/A ratio
-	- $size_class_circ: the colony classcification by circularity
 	- $sa_change: the area change of colony
 	- $change_rate: the proportional change of area of colony
 	- $rate_ad: the proportional change of area of colony after standerdized by survey time interval
