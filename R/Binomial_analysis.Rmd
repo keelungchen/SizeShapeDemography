@@ -382,7 +382,7 @@ pa_data_done_12 <- filter(pa_data_done, Survey_times == 1 | Survey_times == 2)
 pa_data_done_12 <- filter(pa_data_done_12, Fate != "D") #Exclude mortality
 
 ############### Clean data
-df <- data.frame(log(pa_data_done_12$rate_ad), log10(pa_data_done_12$Shape_Area), log10(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit) 
+df <- data.frame(log10(pa_data_done_12$rate_ad), log10(pa_data_done_12$Shape_Area), log10(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit) 
   
   # Calculate R square, AIC, LogLik for 3 morphological classification
 for (i in 1:3) {
@@ -424,7 +424,7 @@ round(DF_bind,0)
 
 #########make the plot
 # Delta area ratio0
-df <- data.frame(log10(pa_data_done_12$rate_ad), log10(pa_data_done_12$Shape_Area), log(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit)
+df <- data.frame(log10(pa_data_done_12$rate_ad), log10(pa_data_done_12$Shape_Area), log10(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit)
 colnames(df) <- c("log Change_rate", "log10 Size","log10 P/A_ratio","logit Circ")
 
 
@@ -453,6 +453,6 @@ for (i in 1:3) {
   }
 fig_1_2 <- plot_grid(plot_list[[1]],plot_list[[2]],plot_list[[3]],nrow = 1)
 
-ggsave("figs/Change_rate_Traits.png", plot = fig_1_2, width = 6.5, height = 2.5, dpi = 300)
+ggsave("figs/Change_rate_Traits.png", plot = fig_1_2, width = 10.0, height = 4.0, dpi = 300)
 
 ```
