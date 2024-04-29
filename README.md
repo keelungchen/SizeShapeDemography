@@ -5,14 +5,6 @@ Archive for data and code for:
 
 Relative contributions of size and shape to coral demography
 
-Authors and contacts: (Hidden before peer review)
-Guanyan Keelung Chen*, guanyan@hawaii.edu
-Lisa C. McManus*, mcmanusl@hawaii.edu
-Tung-Yung Fan, tyfan@nmmba.gov.tw
-Joshua S. Madin*, jmadin@hawaii.edu
-
-*Corresponding authors
-
 Brief summary: 
 
 We used ArcGIS to delineate all coral colonies on the Orthomosaic. By outlining the polygons, we can calculate the perimeter and area of the coral colonies. This study focuses on the coral species Pocillopora acuta. Each coral colony is assigned a unique ID to track their morphological changes and fate over the years, including events of death, recruit, fission, and fusion, which are annotated in ArcGIS. The raw data exported from ArcGIS are further processed in R. In the R code, we calculate the growth, shrinkage, and area change rate of the colonies, as well as perform calculations and statistical analyses of circularity and the P/A ratio.
