@@ -1,6 +1,5 @@
 ---
 title: "Data_Finalization"
-author: "Yan"
 date: "2024-01-05"
 output: github_document
 ---
