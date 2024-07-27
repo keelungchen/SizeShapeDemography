@@ -14,6 +14,7 @@ library(tidyverse)
 library(readr)
 library(cowplot)
 library(MASS)
+library(lme4)
 ```
 
 ```{r}
@@ -276,22 +277,56 @@ ggsave("C:figs/Fates_Ocurrence_Traits.png", plot = fig2_1, width = 6.5, height =
 
 #Consider random effect for coral ID
 ```{r}
-library(lme4)
 # create unique coral ID by combine ID and plot name
 pa_data_done$Unique_ID <- paste(pa_data_done$Plot_ID, pa_data_done$ID, sep="_")
 pa_data_done$Unique_ID <- as.factor(pa_data_done$Unique_ID)
+pa_data_done$Survey_times <- as.factor(pa_data_done$Survey_times)
 
 ### Calculate the survival (mortality) separately 
 Fates = "D"
   
 pa_data_done$Discrete_change <- ifelse(pa_data_done$Fate == Fates, 0, ifelse(pa_data_done$Fate != Fates, 1, NA))
-pa_data_done_12 <- filter(pa_data_done, Survey_times == 1 | Survey_times == 2)
+pa_data_done_12 <- filter(pa_data_done, Survey_times == 1 | Survey_times == 2) 
+
+pa_data_done_2 <- filter(pa_data_done, Survey_times == 2) %>%
+  mutate(Fu_ID = str_detect(Source, pattern = "\\+")) %>%
+  mutate(Fi_PAST = case_when(Fu_ID == FALSE~1, TRUE~0)) %>%
+  mutate(Fu_PAST = case_when(Fu_ID == TRUE~1, TRUE~0)) %>%
+  filter(!Fate == "D") %>%
+  mutate(Fi_FUT = case_when(Fate == "Fi"~1, TRUE~0)) %>%
+  mutate(Fu_FUT = case_when(Fate == "Fu"~1, TRUE~0))
+  
+model <- glm( Fi_FUT~  Fi_PAST + Fu_PAST + Shape_Area + circ   , data = pa_data_done_2, family = binomial())
+
+model <- glm( Fu_FUT~  Fi_PAST + Fu_PAST + Shape_Area + circ   , data = pa_data_done_2, family = binomial())
+
+str_detect(pa_data_done$Source, pattern = "\\+")
 
 # Clean data
-df <- data.frame(pa_data_done_12$Discrete_change, log10(pa_data_done_12$Shape_Area), log10(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit, pa_data_done_12$Unique_ID) 
+df <- pa_data_done_12 %>% 
+  dplyr::select(Discrete_change, Shape_Area, pa_ratio, circ_logit, Unique_ID, Survey_times) %>% 
+  mutate(Shape_Area = log10(Shape_Area), pa_ratio = log10(pa_ratio))
+
+  
+df <- data.frame(pa_data_done_12$Discrete_change, log10(pa_data_done_12$Shape_Area), log10(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit, pa_data_done_12$Unique_ID, pa_data_done_12$Survey_times)
+df$pa_data_done_12.Unique_ID <- as.factor(df$pa_data_done_12.Unique_ID)
+df$pa_data_done_12.Survey_times <- as.factor(df$pa_data_done_12.Survey_times)
+
+df <- data.frame(
+  Discrete_change = pa_data_done_12$Discrete_change,
+  Shape_Area_log = log10(pa_data_done_12$Shape_Area),
+  pa_ratio_log = log10(pa_data_done_12$pa_ratio),
+  circ_logit = pa_data_done_12$circ_logit,
+  Unique_ID = as.factor(pa_data_done_12$Unique_ID),
+  Survey_times = as.factor(pa_data_done_12$Survey_times)
+)
+
+model <- glmer(df[[1]] ~ df[[i+1]] + (1 | df[[6]]/df[[5]]), family = binomial) #df[5] = unique_ID
+model <- glmer(Discrete_change ~ Shape_Area_log + (1 | Survey_times/Unique_ID), data = df, family = binomial)
+
 
 for (i in 1:3) {
-  model <- glmer(df[[1]] ~ df[[i+1]] + (1 | df[[5]]), family = binomial) #df[5] = unique_ID
+  model <- glmer(df[[1]] ~ df[[i+1]] + (1|df[[6]]) + (1 | df[[5]]:df[[6]]), family = binomial) #df[5] = unique_ID
   print(summary(model)) #show model info
 }
 
@@ -334,6 +369,65 @@ print(summary(model))
 }
 
 ```
+
+
+#GLMM for Fi
+```{r}
+# create consistent ID for Fi colonies
+pa_data_done$Fi_ID <- NA
+pa_data_done$ID <- as.character(pa_data_done$ID)
+
+pa_data_done <- pa_data_done %>%
+  mutate(Fi_ID = case_when(
+    !is.na(Source) & !grepl("\\+", Source) ~ Source,  # source 不是 NA 且不含有 '+' 號
+    is.na(Source)  ~ ID,          # fill non-fission with ID 
+    grepl("\\+", Source) ~ ID,    # fill non-fission with ID
+    TRUE ~ Fi_ID                                      # others keep NA (for checking)
+  ))
+
+pa_data_done$Fi_ID <- paste(pa_data_done$Plot_ID, pa_data_done$Fi_ID, sep="_")
+pa_data_done$Fi_ID <- as.factor(pa_data_done$Fi_ID)
+
+
+Fate_loop <- c("Fi")
+
+for (Fates in Fate_loop) {
+  
+  pa_data_done$Discrete_change <- ifelse(pa_data_done$Fate == Fates, 1, ifelse(pa_data_done$Fate != Fates, 0, NA))
+  pa_data_done_12 <- filter(pa_data_done, Survey_times == 1 | Survey_times == 2)
+  pa_data_done_12 <- filter(pa_data_done_12, Fate != "D") #Exclude mortality
+  # Clean data
+  df <- data.frame(pa_data_done_12$Discrete_change, log10(pa_data_done_12$Shape_Area), log10(pa_data_done_12$pa_ratio), pa_data_done_12$circ_logit, pa_data_done_12$Fi_ID) 
+
+  # Calculate 3 morphological classification
+for (i in 1:3) {
+  model <- glmer(df[[1]] ~ df[[i+1]] + (1 | df[[5]]), family = binomial) #df[5] = Fi_ID
+  print(summary(model))
+}
+
+## Calculate R square, AIC, LogLik for size*circ and size+circ
+# size*circ
+model <- glmer(df[[1]] ~ df[[2]]*df[[4]] + (1 | df[[5]]), family = binomial)
+print(summary(model))
+
+# size+circ
+model <- glmer(df[[1]] ~ df[[2]]+df[[4]] + (1 | df[[5]]), family = binomial)
+print(summary(model))
+}
+
+```
+
+#GLMM for Fu
+```{r}
+pa_data_done$Fu_ID <- NA
+pa_data_done$ID <- as.character(pa_data_done$ID)
+
+
+
+
+```
+
+
 
 
 # Analysis model about morphology VS area change rate
@@ -438,6 +532,7 @@ for (i in 1:3) {
     geom_smooth(method="glm", method.args = list(family = "gaussian"), color = "black")+
     xlab(colnames(df[i+1]))+
     ylab(colnames(df[1]))+
+    geom_hline(yintercept=0, linetype="dashed", color = "grey") + 
     theme(
       axis.title.x = element_blank(), 
       axis.title.y = element_blank(),
