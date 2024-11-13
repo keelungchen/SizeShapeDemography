@@ -211,16 +211,16 @@ for (Fates in Fate_loop) {
     theme(
       axis.title.x = element_blank(), 
       axis.title.y = element_blank(),
-      axis.text.x = element_text(size = 10), # 調整X軸文字大小
-      axis.text.y = element_text(size = 14), # 調整Y軸文字大小
-      panel.grid.major = element_blank(), # 移除主要網格線
-      panel.grid.minor = element_blank() # 移除次要網格線
+      axis.text.x = element_text(size = 10), # Adjust the X-axis text size
+      axis.text.y = element_text(size = 14), # Adjust the Y-axis text size
+      panel.grid.major = element_blank(), # Remove major grid lines
+      panel.grid.minor = element_blank() # Remove minor grid lines
     )
     plot_list[[i]] <- p
   }
 
 # Bind the lists
-combined_list <- append(combined_list, plot_list)
+combined_list <- c(combined_list, plot_list)
 }
 
 
@@ -253,16 +253,16 @@ for (Fates in Fate_loop) {
     theme(
       axis.title.x = element_blank(), 
       axis.title.y = element_blank(),
-      axis.text.x = element_text(size = 10), # 調整X軸文字大小
-      axis.text.y = element_text(size = 14), # 調整Y軸文字大小
-      panel.grid.major = element_blank(), # 移除主要網格線
-      panel.grid.minor = element_blank() # 移除次要網格線
+      axis.text.x = element_text(size = 10), # Adjust the X-axis text size
+      axis.text.y = element_text(size = 14), # Adjust the Y-axis text size
+      panel.grid.major = element_blank(), # Remove major grid lines
+      panel.grid.minor = element_blank() # Remove minor grid lines
     )
     plot_list[[i]] <- p
   }
 
 # Bind the lists
-combined_list <- append(combined_list, plot_list)
+combined_list <- c(combined_list, plot_list)
 }
 
 
@@ -270,7 +270,7 @@ combined_list <- append(combined_list, plot_list)
 fig2_1 <- plot_grid(plotlist = combined_list, align="h",nrow = 5)
 
 # export figure 3
-ggsave("C:figs/Fates_Ocurrence_Traits.png", plot = fig2_1, width = 6.5, height = 10, dpi = 300)
+ggsave("figs/Fates_Ocurrence_Traits.png", plot = fig2_1, width = 6.5, height = 10, dpi = 300)
 
 
 ```
@@ -529,12 +529,12 @@ for (i in 1:3) {
     theme(
       axis.title.x = element_blank(), 
       axis.title.y = element_blank(),
-      axis.text.x = element_text(size = 12), # 調整X軸文字大小
-      axis.text.y = element_text(size = 12), # 調整Y軸文字大小
-      panel.grid.major = element_blank(), # 移除主要網格線
-      panel.grid.minor = element_blank(), # 移除次要網格線
-      panel.background = element_rect(fill = "white", colour = "black"), # 白色背景與黑色邊框
-      panel.border = element_rect(colour = "black", fill=NA, size=0.5) # 加強外框線條
+      axis.text.x = element_text(size = 12), # Adjust the X-axis text size
+      axis.text.y = element_text(size = 12), ## Adjust the Y-axis text size
+      panel.grid.major = element_blank(), # Remove major grid lines
+      panel.grid.minor = element_blank(), # Remove minor grid lines
+      panel.background = element_rect(fill = "white", colour = "black"), # white background, black frame
+      panel.border = element_rect(colour = "black", fill=NA, size=0.5) # emphasize frame
     )
     plot_list[[i]] <- p
   }
