@@ -1,7 +1,7 @@
 ---
 title: "Binomial_analysis"
 date: "2024-01-05"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -38,8 +38,6 @@ pa_data_done$circ_logit <- as.numeric(pa_data_done$circ_logit)
 
 # Calculate R square, AIC, LogLik 
 ```{r}
-### 
-
 # Set column name
 column_names <- c("Size", "P/A", "Circ", "Size*Circ", "Size+Circ")
 # Set row name
@@ -182,7 +180,8 @@ round(DF_bind,0)
 
 # plot bionomial GLM
 ```{r}
-#####Plot all Fate vs non-Fate lm#########
+##### Figure 3 #####
+#Plot all Fate vs non-Fate lm#
 combined_list <- list()
 model_times <- list()
 model_plus <- list()
@@ -269,6 +268,8 @@ combined_list <- append(combined_list, plot_list)
 
 #plot together
 fig2_1 <- plot_grid(plotlist = combined_list, align="h",nrow = 5)
+
+# export figure 3
 ggsave("C:figs/Fates_Ocurrence_Traits.png", plot = fig2_1, width = 6.5, height = 10, dpi = 300)
 
 
@@ -276,6 +277,7 @@ ggsave("C:figs/Fates_Ocurrence_Traits.png", plot = fig2_1, width = 6.5, height =
 
 #Consider random effect for coral ID and SURVEY_TIME by GLMM
 ```{r}
+###Analysis for Supplementary materials: Table S7###
 # create unique coral ID by combine ID and plot name
 pa_data_done$Unique_ID <- paste(pa_data_done$Plot_ID, pa_data_done$ID, sep="_")
 pa_data_done$Unique_ID <- as.factor(pa_data_done$Unique_ID)
@@ -423,6 +425,7 @@ U_model_sxc <- glmer(Discrete_change ~ Shape_Area_log * circ_logit + (1 | Survey
 # Analysis model about morphology VS area change rate
 
 ```{r}
+##### Figure 4 #####
 # Set column name
 column_names <- c("Size", "P/A", "Circ", "Size*Circ", "Size+Circ")
 # Set row name
@@ -537,6 +540,7 @@ for (i in 1:3) {
   }
 fig_1_2 <- plot_grid(plot_list[[1]],plot_list[[2]],plot_list[[3]],nrow = 1)
 
+# export figure 4
 ggsave("figs/Change_rate_Traits.png", plot = fig_1_2, width = 10.0, height = 4.0, dpi = 300)
 
 ```
