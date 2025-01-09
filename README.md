@@ -66,3 +66,10 @@ Tung-Yung Fan, tyfan@nmmba.gov.tw
 Joshua S. Madin*, jmadin@hawaii.edu
 
 *Corresponding authors
+
+## Citation
+If you use this dataset in your research, please cite:
+Chen, G. K., McManus, L. C., Fan, T-Y., & Madin, J. S. (2025). Relative contributions of size and shape to coral demography. The American Naturalist.
+
+Additionally, please cite the Zenodo archive:
+Chen, G. K., McManus, L. C., Fan, T-Y., & Madin, J. S. (2024). Data from: Relative contributions of size and shape to coral demography. Zenodo. https://doi.org/10.5281/zenodo.14615073
